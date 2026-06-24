@@ -1,0 +1,1024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Versus — Find the Best from the Rest</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple-deep: #0a0010;
+    --purple-dark: #120020;
+    --purple-mid: #1e003a;
+    --purple-rich: #2d0060;
+    --purple-vivid: #7c3aed;
+    --purple-bright: #9d5cf6;
+    --purple-glow: #b47ffb;
+    --purple-light: #d4b0ff;
+    --purple-pale: #ede5ff;
+    --accent: #a855f7;
+    --accent-hover: #c084fc;
+    --green: #22c55e;
+    --red: #ef4444;
+    --gold: #fbbf24;
+    --text-primary: #f0e8ff;
+    --text-secondary: #b899e8;
+    --text-muted: #7c5fa8;
+    --border: rgba(124, 58, 237, 0.25);
+    --border-strong: rgba(154, 92, 246, 0.45);
+    --card-bg: rgba(30, 0, 58, 0.55);
+    --card-bg-hover: rgba(45, 0, 96, 0.65);
+    --input-bg: rgba(18, 0, 32, 0.8);
+    --glass: rgba(124, 58, 237, 0.08);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--purple-deep);
+    color: var(--text-primary);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ─── Background mesh ─── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 20% 10%, rgba(124, 58, 237, 0.18) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 50% at 80% 80%, rgba(88, 28, 135, 0.15) 0%, transparent 55%),
+      radial-gradient(ellipse 40% 40% at 50% 50%, rgba(45, 0, 96, 0.1) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ─── Page management ─── */
+  #home-page, #result-page { position: relative; z-index: 1; }
+  .hidden { display: none !important; }
+
+  /* ─── Nav bar ─── */
+  .navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    background: rgba(10, 0, 16, 0.6);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .nav-logo {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--purple-glow);
+    letter-spacing: -0.02em;
+  }
+
+  .nav-logo span { color: var(--accent); }
+
+  .nav-btn {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.25rem;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--purple-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .nav-btn:hover {
+    background: rgba(124, 58, 237, 0.2);
+    border-color: var(--accent);
+    color: var(--text-primary);
+  }
+
+  /* ─── HOME PAGE ─── */
+  .home-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100vh - 65px);
+    padding: 4rem 1.5rem;
+    text-align: center;
+  }
+
+  .home-eyebrow {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 1.2rem;
+  }
+
+  .home-headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(2.4rem, 5.5vw, 3.5rem);
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: -0.03em;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+  }
+
+  .home-headline em {
+    font-style: normal;
+    color: var(--purple-bright);
+  }
+
+  .home-hint {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    max-width: 520px;
+    line-height: 1.7;
+    margin-bottom: 2.8rem;
+  }
+
+  .home-hint strong { color: var(--text-secondary); font-weight: 500; }
+
+  .home-hint .example {
+    display: inline-block;
+    margin-top: 0.5rem;
+    font-size: 0.82rem;
+    color: var(--text-muted);
+  }
+
+  .home-hint .example span {
+    background: rgba(124, 58, 237, 0.15);
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    padding: 0.15rem 0.5rem;
+    color: var(--purple-glow);
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  /* ─── Search form ─── */
+  .search-form {
+    width: 100%;
+    max-width: 480px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    text-align: left;
+  }
+
+  .input-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    padding-left: 0.2rem;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 0.85rem 1.1rem;
+    border-radius: 10px;
+    border: 1px solid var(--border-strong);
+    background: var(--input-bg);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    outline: none;
+    transition: all 0.2s ease;
+    backdrop-filter: blur(8px);
+  }
+
+  .search-input::placeholder { color: var(--text-muted); }
+
+  .search-input:focus {
+    border-color: var(--accent);
+    background: rgba(30, 0, 58, 0.9);
+    box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+  }
+
+  /* Divider between inputs */
+  .vs-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .vs-divider::before,
+  .vs-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  .vs-divider span {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+  }
+
+  .compare-btn {
+    margin-top: 0.5rem;
+    padding: 0.95rem 2rem;
+    border-radius: 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .compare-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  }
+
+  .compare-btn:hover {
+    background: var(--accent-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(124, 58, 237, 0.4);
+  }
+
+  .compare-btn:active { transform: translateY(0); }
+
+  .compare-btn:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Categories row */
+  .categories {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    justify-content: center;
+    margin-top: 2.5rem;
+    max-width: 520px;
+  }
+
+  .cat-pill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    padding: 0.3rem 0.7rem;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    background: var(--glass);
+    cursor: pointer;
+    transition: all 0.18s;
+  }
+
+  .cat-pill:hover {
+    border-color: var(--accent);
+    color: var(--purple-light);
+    background: rgba(124, 58, 237, 0.15);
+  }
+
+  /* ─── RESULT PAGE ─── */
+  .result-page-inner {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 5rem;
+  }
+
+  /* Top bar */
+  .result-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .result-vs-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(1.3rem, 3vw, 1.9rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+
+  .result-vs-title .name-a { color: var(--purple-bright); }
+  .result-vs-title .vs-sep { color: var(--text-muted); font-size: 0.9em; margin: 0 0.4rem; }
+  .result-vs-title .name-b { color: var(--purple-light); }
+
+  /* Loading state */
+  .loading-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 3.5rem 2rem;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+
+  .loading-spinner {
+    width: 44px;
+    height: 44px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+    margin: 0 auto 1.2rem;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading-text {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+  }
+
+  .loading-step {
+    font-size: 0.82rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+
+  /* ─── Comparison chart ─── */
+  .chart-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    backdrop-filter: blur(12px);
+    margin-bottom: 1.75rem;
+  }
+
+  .chart-header {
+    display: grid;
+    grid-template-columns: 1fr 180px 1fr;
+    gap: 0;
+    background: rgba(45, 0, 96, 0.4);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chart-col-label {
+    padding: 1rem 1.25rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-align: center;
+  }
+
+  .chart-col-label.left { color: var(--purple-bright); border-right: 1px solid var(--border); }
+  .chart-col-label.mid { color: var(--text-muted); font-size: 0.78rem; display: flex; align-items: center; justify-content: center; letter-spacing: 0.1em; text-transform: uppercase; }
+  .chart-col-label.right { color: var(--purple-light); border-left: 1px solid var(--border); }
+
+  /* Row */
+  .chart-row {
+    display: grid;
+    grid-template-columns: 1fr 180px 1fr;
+    gap: 0;
+    border-bottom: 1px solid rgba(124, 58, 237, 0.1);
+    transition: background 0.15s;
+  }
+
+  .chart-row:last-child { border-bottom: none; }
+  .chart-row:hover { background: rgba(124, 58, 237, 0.06); }
+
+  .row-cell {
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+  }
+
+  .row-cell.left { border-right: 1px solid rgba(124, 58, 237, 0.12); justify-content: flex-end; text-align: right; }
+  .row-cell.right { border-left: 1px solid rgba(124, 58, 237, 0.12); justify-content: flex-start; }
+  .row-cell.mid {
+    justify-content: center;
+    text-align: center;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    padding: 0.9rem 0.5rem;
+    line-height: 1.3;
+  }
+
+  /* Indicator dots */
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .dot-green { background: var(--green); box-shadow: 0 0 6px rgba(34, 197, 94, 0.4); }
+  .dot-red { background: var(--red); box-shadow: 0 0 6px rgba(239, 68, 68, 0.3); }
+  .dot-neutral { background: var(--text-muted); }
+  .dot-hidden { opacity: 0; }
+
+  .cell-text { color: var(--text-secondary); }
+  .cell-text.winner { color: var(--text-primary); font-weight: 500; }
+
+  /* Category section label */
+  .chart-section-label {
+    display: grid;
+    grid-template-columns: 1fr 180px 1fr;
+    background: rgba(124, 58, 237, 0.07);
+    border-bottom: 1px solid rgba(124, 58, 237, 0.12);
+  }
+
+  .section-label-inner {
+    grid-column: 1 / -1;
+    padding: 0.55rem 1.25rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+
+  /* ─── Score banner ─── */
+  .score-banner {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 1rem;
+    margin-bottom: 1.75rem;
+    align-items: stretch;
+  }
+
+  .score-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+    backdrop-filter: blur(12px);
+  }
+
+  .score-card.winner-card {
+    border-color: var(--accent);
+    background: rgba(124, 58, 237, 0.12);
+  }
+
+  .score-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .score-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.6rem;
+  }
+
+  .score-wins {
+    font-size: 2rem;
+    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    color: var(--purple-bright);
+  }
+
+  .winner-card .score-wins { color: var(--purple-glow); }
+
+  .score-wins-label {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    margin-top: 0.2rem;
+  }
+
+  .score-vs-mid {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1.1rem;
+    padding: 0 0.5rem;
+  }
+
+  .winner-badge {
+    display: inline-block;
+    margin-top: 0.6rem;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--accent);
+    color: #fff;
+    padding: 0.25rem 0.65rem;
+    border-radius: 20px;
+  }
+
+  /* ─── Summary & Verdict ─── */
+  .summary-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 1.75rem 2rem;
+    backdrop-filter: blur(12px);
+    margin-bottom: 1.75rem;
+  }
+
+  .summary-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 0.75rem;
+  }
+
+  .summary-text {
+    font-size: 0.93rem;
+    color: var(--text-secondary);
+    line-height: 1.75;
+    margin-bottom: 1.5rem;
+  }
+
+  .summary-text:last-child { margin-bottom: 0; }
+
+  .verdict-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+  }
+
+  .verdict-item {
+    background: rgba(45, 0, 96, 0.35);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+  }
+
+  .verdict-item-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  .verdict-item-text {
+    font-size: 0.87rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
+  .verdict-item-text strong {
+    color: var(--purple-light);
+    font-weight: 600;
+  }
+
+  /* ─── Bottom bar ─── */
+  .bottom-bar {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+  }
+
+  /* ─── Error state ─── */
+  .error-card {
+    background: rgba(239, 68, 68, 0.08);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    color: #fca5a5;
+  }
+
+  .error-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .error-body { font-size: 0.88rem; opacity: 0.8; line-height: 1.6; }
+
+  /* ─── Responsive ─── */
+  @media (max-width: 640px) {
+    .navbar { padding: 1rem 1.25rem; }
+    .chart-header, .chart-row, .chart-section-label { grid-template-columns: 1fr 100px 1fr; }
+    .row-cell { padding: 0.75rem 0.75rem; font-size: 0.82rem; }
+    .score-banner { grid-template-columns: 1fr 30px 1fr; }
+    .result-vs-title { font-size: 1.15rem; }
+    .home-headline { font-size: 2rem; }
+    .summary-card { padding: 1.25rem 1.25rem; }
+  }
+
+  /* ─── Animate in ─── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .anim-fadein { animation: fadeUp 0.4s ease both; }
+  .anim-delay-1 { animation-delay: 0.05s; }
+  .anim-delay-2 { animation-delay: 0.1s; }
+  .anim-delay-3 { animation-delay: 0.15s; }
+  .anim-delay-4 { animation-delay: 0.2s; }
+</style>
+</head>
+<body>
+
+<!-- ══════════════ NAV ══════════════ -->
+<nav class="navbar">
+  <div class="nav-logo">Ver<span>sus</span></div>
+  <button class="nav-btn" id="nav-new-btn" style="display:none;" onclick="goHome()">← New Comparison</button>
+</nav>
+
+<!-- ══════════════ HOME PAGE ══════════════ -->
+<div id="home-page">
+  <div class="home-wrap">
+    <p class="home-eyebrow anim-fadein">AI-powered comparisons</p>
+    <h1 class="home-headline anim-fadein anim-delay-1">Find the <em>best</em><br>from the rest</h1>
+
+    <p class="home-hint anim-fadein anim-delay-2">
+      Compare anything — phones, laptops, cars, schools, cities, characters, and more.<br>
+      <strong>Be specific for the most accurate results.</strong>
+      <span class="example">
+        Use <span>HP Envy x360 2-in-1 Laptop 15</span> instead of <span style="opacity:0.6">HP laptop</span>
+      </span>
+    </p>
+
+    <div class="search-form anim-fadein anim-delay-3">
+      <div class="input-group">
+        <label class="input-label" for="val-a">First value</label>
+        <input class="search-input" id="val-a" type="text" placeholder="e.g. Samsung Galaxy S25 Ultra" autocomplete="off" />
+      </div>
+
+      <div class="vs-divider"><span>vs</span></div>
+
+      <div class="input-group">
+        <label class="input-label" for="val-b">Second value</label>
+        <input class="search-input" id="val-b" type="text" placeholder="e.g. Apple iPhone 16 Pro Max" autocomplete="off" />
+      </div>
+
+      <button class="compare-btn" id="compare-btn" onclick="startComparison()" disabled>Compare →</button>
+    </div>
+
+    <div class="categories anim-fadein anim-delay-4">
+      <span class="cat-pill">📱 Phones</span>
+      <span class="cat-pill">💻 Laptops</span>
+      <span class="cat-pill">🚗 Cars</span>
+      <span class="cat-pill">🏫 Schools</span>
+      <span class="cat-pill">🎓 Universities</span>
+      <span class="cat-pill">🌆 Cities</span>
+      <span class="cat-pill">🎮 Characters</span>
+      <span class="cat-pill">💾 Software</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ RESULT PAGE ══════════════ -->
+<div id="result-page" class="hidden">
+  <div class="result-page-inner">
+    <!-- Top header -->
+    <div class="result-topbar">
+      <h2 class="result-vs-title">
+        <span class="name-a" id="display-a"></span>
+        <span class="vs-sep">vs</span>
+        <span class="name-b" id="display-b"></span>
+      </h2>
+      <button class="nav-btn" onclick="goHome()">← New Comparison</button>
+    </div>
+
+    <!-- Dynamic content area -->
+    <div id="result-content"></div>
+
+    <!-- Bottom new comparison -->
+    <div class="bottom-bar">
+      <button class="nav-btn" onclick="goHome()" style="padding: 0.7rem 1.75rem; font-size: 0.9rem;">← New Comparison</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── Input gating ── */
+const valA = document.getElementById('val-a');
+const valB = document.getElementById('val-b');
+const compareBtn = document.getElementById('compare-btn');
+
+function checkInputs() {
+  const a = valA.value.trim();
+  const b = valB.value.trim();
+  compareBtn.disabled = !(a.length > 1 && b.length > 1);
+}
+
+valA.addEventListener('input', checkInputs);
+valB.addEventListener('input', checkInputs);
+
+valA.addEventListener('keydown', e => { if (e.key === 'Enter') valB.focus(); });
+valB.addEventListener('keydown', e => { if (e.key === 'Enter' && !compareBtn.disabled) startComparison(); });
+
+/* ── Navigation ── */
+function goHome() {
+  document.getElementById('result-page').classList.add('hidden');
+  document.getElementById('home-page').classList.remove('hidden');
+  document.getElementById('nav-new-btn').style.display = 'none';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function showResult() {
+  document.getElementById('home-page').classList.add('hidden');
+  document.getElementById('result-page').classList.remove('hidden');
+  document.getElementById('nav-new-btn').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ── Main comparison trigger ── */
+async function startComparison() {
+  const a = valA.value.trim();
+  const b = valB.value.trim();
+  if (!a || !b) return;
+
+  document.getElementById('display-a').textContent = a;
+  document.getElementById('display-b').textContent = b;
+  showResult();
+
+  const content = document.getElementById('result-content');
+  content.innerHTML = `
+    <div class="loading-card anim-fadein">
+      <div class="loading-spinner"></div>
+      <p class="loading-text">Gathering information…</p>
+      <p class="loading-step" id="loading-step">Fetching specifications and data from reputable sources</p>
+    </div>`;
+
+  // Cycle loading messages
+  const steps = [
+    'Fetching specifications and data from reputable sources',
+    'Analyzing strengths and weaknesses',
+    'Running side-by-side evaluation',
+    'Preparing your comparison chart'
+  ];
+  let si = 0;
+  const stepEl = document.getElementById('loading-step');
+  const stepTimer = setInterval(() => {
+    si = (si + 1) % steps.length;
+    if (stepEl) stepEl.textContent = steps[si];
+  }, 2200);
+
+  try {
+    const data = await fetchComparison(a, b);
+    clearInterval(stepTimer);
+    renderComparison(a, b, data);
+  } catch (err) {
+    clearInterval(stepTimer);
+    content.innerHTML = `
+      <div class="error-card anim-fadein">
+        <p class="error-title">Comparison failed</p>
+        <p class="error-body">${err.message || 'Something went wrong. Please try again or check your connection.'}</p>
+      </div>`;
+  }
+}
+
+/* ── API call ── */
+async function fetchComparison(a, b) {
+  const systemPrompt = `You are an expert product analyst with access to comprehensive knowledge about cars, smartphones, laptops, software, schools, universities, cities, and fictional characters. Your job is to produce detailed, data-rich side-by-side comparisons.
+
+You MUST respond with ONLY a valid JSON object — no preamble, no markdown code fences, no trailing text. The JSON must match this exact schema:
+
+{
+  "category": "string (e.g. Smartphones, Laptops, Cars, Universities, Cities, Fictional Characters)",
+  "rows": [
+    {
+      "section": "string (category heading, e.g. Performance, Design, Cost)",
+      "metric": "string (specific metric name, e.g. Processor, Display Size, Price)",
+      "a": "string (value for item A)",
+      "b": "string (value for item B)",
+      "winner": "a" | "b" | "tie" (which is objectively better for this metric, or tie)
+    }
+  ],
+  "summary": "string (2-4 sentences objectively summarizing the comparison)",
+  "verdict": [
+    {
+      "use_case": "string (e.g. Best for power users, Best budget pick, Best for gaming)",
+      "winner": "string (name of winner or 'Either')",
+      "reason": "string (1 sentence reason)"
+    }
+  ],
+  "overall_winner": "a" | "b" | "tie",
+  "overall_winner_reason": "string (1-2 sentences why this is the overall better option)"
+}
+
+Rules:
+- Include 12-22 rows across 3-5 logical sections
+- Use real, specific, verifiable data from reputable sources (manufacturer specs, official sites, Wikipedia, well-known review outlets)
+- For technical products: include specs, performance, pricing, release year, etc.
+- For cities: include population, cost of living, climate, quality of life, job market, etc.
+- For universities/schools: include rankings, acceptance rate, tuition, programs, location, etc.
+- For cars: include engine, range/fuel economy, safety ratings, cargo, price, etc.
+- For fictional characters: include abilities, universe, origin, notable feats, etc.
+- winner field must be an objective call — if truly equal, use "tie"
+- Be accurate and informative; do not hallucinate data`;
+
+  const userMsg = `Compare "${a}" vs "${b}" in detail. Provide as many relevant metrics and specifications as you can find. Be specific with numbers and data.`;
+
+  const response = await fetch('/api/compare', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 4000,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }]
+    })
+  });
+
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    const msg = errBody.error?.message || '';
+    if (response.status === 429) throw new Error('Rate limit reached. Please wait a moment and try again.');
+    if (response.status === 500) throw new Error('Server error — check that your API key is set in Vercel environment variables.');
+    throw new Error(msg || `API error ${response.status}. Please try again.`);
+  }
+
+  const apiData = await response.json();
+  const text = apiData.content?.map(c => c.text || '').join('') || '';
+
+  // Strip possible markdown fences
+  const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+
+  let parsed;
+  try {
+    parsed = JSON.parse(clean);
+  } catch {
+    throw new Error('Could not parse comparison data. The AI returned an unexpected format. Please try again.');
+  }
+
+  return parsed;
+}
+
+/* ── Render result ── */
+function renderComparison(nameA, nameB, data) {
+  const content = document.getElementById('result-content');
+
+  // Count wins
+  let winsA = 0, winsB = 0, ties = 0;
+  (data.rows || []).forEach(r => {
+    if (r.winner === 'a') winsA++;
+    else if (r.winner === 'b') winsB++;
+    else ties++;
+  });
+
+  const overallA = data.overall_winner === 'a';
+  const overallB = data.overall_winner === 'b';
+
+  /* Score banner */
+  const scoreBanner = `
+    <div class="score-banner anim-fadein">
+      <div class="score-card${overallA ? ' winner-card' : ''}">
+        <p class="score-label">Item A</p>
+        <p class="score-name">${escHtml(nameA)}</p>
+        <p class="score-wins">${winsA}</p>
+        <p class="score-wins-label">metrics won</p>
+        ${overallA ? '<span class="winner-badge">Overall Winner</span>' : ''}
+      </div>
+      <div class="score-vs-mid">vs</div>
+      <div class="score-card${overallB ? ' winner-card' : ''}">
+        <p class="score-label">Item B</p>
+        <p class="score-name">${escHtml(nameB)}</p>
+        <p class="score-wins">${winsB}</p>
+        <p class="score-wins-label">metrics won</p>
+        ${overallB ? '<span class="winner-badge">Overall Winner</span>' : ''}
+      </div>
+    </div>`;
+
+  /* Group rows by section */
+  const sections = {};
+  (data.rows || []).forEach(row => {
+    const sec = row.section || 'General';
+    if (!sections[sec]) sections[sec] = [];
+    sections[sec].push(row);
+  });
+
+  /* Build chart */
+  let chartHtml = `<div class="chart-card anim-fadein anim-delay-1">
+    <div class="chart-header">
+      <div class="chart-col-label left">${escHtml(nameA)}</div>
+      <div class="chart-col-label mid">Metric</div>
+      <div class="chart-col-label right">${escHtml(nameB)}</div>
+    </div>`;
+
+  Object.entries(sections).forEach(([section, rows]) => {
+    chartHtml += `
+      <div class="chart-section-label">
+        <div class="section-label-inner">${escHtml(section)}</div>
+      </div>`;
+
+    rows.forEach(row => {
+      const aWins = row.winner === 'a';
+      const bWins = row.winner === 'b';
+      const isTie = row.winner === 'tie';
+
+      const dotA = aWins ? 'dot-green' : bWins ? 'dot-red' : 'dot-neutral';
+      const dotB = bWins ? 'dot-green' : aWins ? 'dot-red' : 'dot-neutral';
+      const textA = aWins ? 'winner' : '';
+      const textB = bWins ? 'winner' : '';
+
+      chartHtml += `
+        <div class="chart-row">
+          <div class="row-cell left">
+            <span class="cell-text ${textA}">${escHtml(String(row.a || '—'))}</span>
+            <span class="dot ${dotA}"></span>
+          </div>
+          <div class="row-cell mid">${escHtml(String(row.metric || ''))}</div>
+          <div class="row-cell right">
+            <span class="dot ${dotB}"></span>
+            <span class="cell-text ${textB}">${escHtml(String(row.b || '—'))}</span>
+          </div>
+        </div>`;
+    });
+  });
+
+  chartHtml += `</div>`;
+
+  /* Legend */
+  const legend = `
+    <div style="display:flex; gap:1.25rem; align-items:center; margin-bottom:1.5rem; font-size:0.78rem; color:var(--text-muted);">
+      <span style="display:flex;align-items:center;gap:0.4rem;"><span class="dot dot-green"></span> Better result</span>
+      <span style="display:flex;align-items:center;gap:0.4rem;"><span class="dot dot-red"></span> Weaker result</span>
+      <span style="display:flex;align-items:center;gap:0.4rem;"><span class="dot dot-neutral"></span> Tied / comparable</span>
+    </div>`;
+
+  /* Summary & verdict */
+  let verdictGrid = '';
+  if (data.verdict && data.verdict.length) {
+    verdictGrid = `<div class="verdict-grid">` +
+      data.verdict.map(v => `
+        <div class="verdict-item">
+          <p class="verdict-item-label">${escHtml(v.use_case || '')}</p>
+          <p class="verdict-item-text"><strong>${escHtml(v.winner || '')}</strong> — ${escHtml(v.reason || '')}</p>
+        </div>`).join('') +
+      `</div>`;
+  }
+
+  const summaryCard = `
+    <div class="summary-card anim-fadein anim-delay-2">
+      <p class="summary-section-title">Summary</p>
+      <p class="summary-text">${escHtml(data.summary || '')}</p>
+
+      ${data.overall_winner_reason ? `
+        <p class="summary-section-title" style="margin-top:1.25rem;">Overall Verdict</p>
+        <p class="summary-text">${escHtml(data.overall_winner_reason)}</p>
+      ` : ''}
+
+      ${verdictGrid ? `
+        <p class="summary-section-title" style="margin-top:1.25rem;">Best For</p>
+        ${verdictGrid}
+      ` : ''}
+    </div>`;
+
+  content.innerHTML = scoreBanner + chartHtml + legend + summaryCard;
+}
+
+/* ── Utils ── */
+function escHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>
