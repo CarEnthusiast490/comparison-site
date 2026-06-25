@@ -1,36 +1,46 @@
-export default async function handler(req, res) {
-  // Only accept POST requests
+module.exports = async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  // Read the API key from Vercel environment variables (never exposed to users)
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return res.status(500).json({
-      error: {
-        message: 'ANTHROPIC_API_KEY environment variable is not set. Add it in your Vercel project settings.'
-      }
+      error: { message: 'GEMINI_API_KEY is not set in Vercel environment variables.' }
     });
   }
 
   try {
-    const response = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-      },
-      body: JSON.stringify(req.body),
-    });
+    const { system, messages } = req.body;
+    const userMessage = messages?.[0]?.content || '';
+    const combinedPrompt = `${system}\n\nUser request: ${userMessage}`;
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: combinedPrompt }] }],
+          generationConfig: { temperature: 0.2, maxOutputTokens: 4000 }
+        })
+      }
+    );
 
     const data = await response.json();
 
-    // Forward the exact status code and body from Anthropic back to the browser
-    return res.status(response.status).json(data);
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: { message: data.error?.message || 'Gemini API error' }
+      });
+    }
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    return res.status(200).json({
+      content: [{ type: 'text', text }]
+    });
 
   } catch (err) {
     return res.status(500).json({ error: { message: err.message || 'Unexpected server error' } });
   }
-}
+};
