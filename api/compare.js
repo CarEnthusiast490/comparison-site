@@ -18,7 +18,6 @@ module.exports = async function handler(req, res) {
     const year = new Date().getFullYear();
 
     // ── Extract item names ─────────────────────────────────────────────────
-    // Try quoted format first: Compare "X" vs "Y"
     let itemA = '';
     let itemB = '';
     const quotedMatch = userMessage.match(/Compare "(.+?)" vs "(.+?)"/i);
@@ -26,7 +25,6 @@ module.exports = async function handler(req, res) {
       itemA = quotedMatch[1];
       itemB = quotedMatch[2];
     } else {
-      // Fallback: grab anything between Compare and vs, and vs and in detail
       const fallback = userMessage.match(/Compare (.+?) vs (.+?) in detail/i);
       if (fallback) {
         itemA = fallback[1].replace(/"/g, '').trim();
@@ -34,39 +32,25 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // ── Step 1: Web search for current data ───────────────────────────────
+    // ── Step 1: Web search — two focused searches, trimmed results ─────────
     let searchContext = '';
 
     if (tavilyKey && itemA && itemB) {
-      // Run multiple targeted searches per item for richer data
-      const searches = await Promise.all([
-        searchWeb(tavilyKey, `${itemA} latest statistics data ${year}`),
-        searchWeb(tavilyKey, `${itemB} latest statistics data ${year}`),
-        searchWeb(tavilyKey, `${itemA} vs ${itemB} comparison ${year}`),
+      const [dataA, dataB] = await Promise.all([
+        searchWeb(tavilyKey, `${itemA} statistics facts ${year}`),
+        searchWeb(tavilyKey, `${itemB} statistics facts ${year}`),
       ]);
 
-      const [dataA, dataB, combined] = searches;
-
       searchContext = `
-=== LIVE WEB DATA (fetched ${year}) — YOU MUST USE THIS ===
+=== LIVE WEB DATA (${year}) — USE THESE FIGURES ===
+You MUST use the statistics below. Do not use older data from your training.
 
-The following is real, current data retrieved from the web RIGHT NOW.
-You are STRICTLY REQUIRED to use these figures in your comparison rows.
-Do NOT use your training data if it contradicts these search results.
-If the search results contain a statistic, use that exact figure.
-
---- Current data for: ${itemA} ---
+--- ${itemA} ---
 ${dataA}
 
---- Current data for: ${itemB} ---
+--- ${itemB} ---
 ${dataB}
-
---- Direct comparison sources ---
-${combined}
-
-=== END OF LIVE WEB DATA ===
-
-REMINDER: Use the figures above. Do not substitute with older data from your training.
+=== END LIVE DATA ===
 `;
     }
 
@@ -88,8 +72,8 @@ REMINDER: Use the figures above. Do not substitute with older data from your tra
           { role: 'system', content: finalSystem },
           ...(messages || [])
         ],
-        max_tokens: 4000,
-        temperature: 0.1  // Lower = more faithful to the provided data
+        max_tokens: 3000,
+        temperature: 0.1
       })
     });
 
@@ -113,7 +97,7 @@ REMINDER: Use the figures above. Do not substitute with older data from your tra
   }
 };
 
-// ── Tavily search helper ───────────────────────────────────────────────────
+// ── Tavily search helper — trimmed to stay within token limits ─────────────
 async function searchWeb(apiKey, query) {
   try {
     const res = await fetch('https://api.tavily.com/search', {
@@ -122,9 +106,9 @@ async function searchWeb(apiKey, query) {
       body: JSON.stringify({
         api_key: apiKey,
         query,
-        search_depth: 'advanced',  // deeper search than basic
-        max_results: 7,
-        include_answer: true,       // Tavily's own AI summary of results
+        search_depth: 'basic',
+        max_results: 3,
+        include_answer: true,
         include_raw_content: false
       })
     });
@@ -132,12 +116,14 @@ async function searchWeb(apiKey, query) {
     const data = await res.json();
     if (!res.ok || !data.results?.length) return 'No results found.';
 
-    const answer = data.answer ? `Key summary: ${data.answer}\n` : '';
-    const results = data.results
-      .map(r => `[${r.title}] ${r.content}`)
-      .join('\n\n');
+    const answer = data.answer ? `Summary: ${data.answer}\n` : '';
 
-    return answer + results;
+    // Trim each result to 300 chars to keep total tokens manageable
+    const results = data.results
+      .map(r => `• ${r.title}: ${r.content.slice(0, 300)}`)
+      .join('\n');
+
+    return (answer + results).slice(0, 1500);
   } catch {
     return 'Search unavailable.';
   }
