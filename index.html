@@ -885,14 +885,21 @@ winner field: pick the objectively better value, or "tie" if equal. For cities, 
   const apiData = await response.json();
   const text = apiData.content?.map(c => c.text || '').join('') || '';
 
-  // Strip possible markdown fences
-  const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
-
+  // Robustly extract the JSON object from anywhere in the response
   let parsed;
   try {
-    parsed = JSON.parse(clean);
+    // First try: strip markdown fences and parse directly
+    const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+    try {
+      parsed = JSON.parse(clean);
+    } catch {
+      // Second try: find the outermost { } block in the response
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('No JSON found in response');
+      parsed = JSON.parse(jsonMatch[0]);
+    }
   } catch {
-    throw new Error('Could not parse comparison data. The AI returned an unexpected format. Please try again.');
+    throw new Error('Could not parse comparison data. Please try again — this sometimes happens on complex comparisons.');
   }
 
   return parsed;
