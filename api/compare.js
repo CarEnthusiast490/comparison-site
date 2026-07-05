@@ -32,29 +32,34 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // ── Step 1: Web search — two focused searches, trimmed results ─────────
+    // ── Step 1: Targeted web searches for current data ────────────────────
     let searchContext = '';
 
     if (tavilyKey && itemA && itemB) {
+      // Use specific, targeted queries instead of generic ones
       const [dataA, dataB] = await Promise.all([
-        searchWeb(tavilyKey, `${itemA} statistics facts ${year}`),
-        searchWeb(tavilyKey, `${itemB} statistics facts ${year}`),
+        searchWeb(tavilyKey, `${itemA} population cost of living GDP crime rate ${year}`),
+        searchWeb(tavilyKey, `${itemB} population cost of living GDP crime rate ${year}`),
       ]);
 
       searchContext = `
-=== LIVE WEB DATA (${year}) — USE THESE FIGURES ===
-You MUST use the statistics below. Do not use older data from your training.
+=== RECENT WEB DATA (${year}) ===
+Use any relevant figures from below to update your knowledge.
+IMPORTANT: If a specific figure is NOT in the search results below, 
+use your own training knowledge instead — never write "not specified" 
+for something that is commonly known. Only write "not specified" if 
+the data is genuinely obscure or unknown.
 
---- ${itemA} ---
+--- Recent data: ${itemA} ---
 ${dataA}
 
---- ${itemB} ---
+--- Recent data: ${itemB} ---
 ${dataB}
-=== END LIVE DATA ===
+=== END WEB DATA ===
 `;
     }
 
-    // ── Step 2: Build the final system prompt ─────────────────────────────
+    // ── Step 2: Build final system prompt ─────────────────────────────────
     const finalSystem = searchContext
       ? `${system}\n\n${searchContext}`
       : system;
@@ -97,7 +102,7 @@ ${dataB}
   }
 };
 
-// ── Tavily search helper — trimmed to stay within token limits ─────────────
+// ── Tavily search helper ───────────────────────────────────────────────────
 async function searchWeb(apiKey, query) {
   try {
     const res = await fetch('https://api.tavily.com/search', {
@@ -107,7 +112,7 @@ async function searchWeb(apiKey, query) {
         api_key: apiKey,
         query,
         search_depth: 'basic',
-        max_results: 3,
+        max_results: 4,
         include_answer: true,
         include_raw_content: false
       })
@@ -118,12 +123,18 @@ async function searchWeb(apiKey, query) {
 
     const answer = data.answer ? `Summary: ${data.answer}\n` : '';
 
-    // Trim each result to 300 chars to keep total tokens manageable
-    const results = data.results
-      .map(r => `• ${r.title}: ${r.content.slice(0, 300)}`)
+    // Filter out results that don't seem relevant (e.g. conference listings)
+    const filtered = data.results.filter(r =>
+      !r.title.toLowerCase().includes('conference') &&
+      !r.title.toLowerCase().includes('meeting') &&
+      !r.title.toLowerCase().includes('event')
+    );
+
+    const results = (filtered.length ? filtered : data.results)
+      .map(r => `• ${r.title}: ${r.content.slice(0, 400)}`)
       .join('\n');
 
-    return (answer + results).slice(0, 1500);
+    return (answer + results).slice(0, 2000);
   } catch {
     return 'Search unavailable.';
   }
