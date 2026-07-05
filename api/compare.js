@@ -32,31 +32,31 @@ module.exports = async function handler(req, res) {
       }
     }
 
-    // ── Step 1: Targeted web searches for current data ────────────────────
+    // ── Step 1: Web search — supplement only, not primary source ──────────
     let searchContext = '';
 
     if (tavilyKey && itemA && itemB) {
-      // Use specific, targeted queries instead of generic ones
       const [dataA, dataB] = await Promise.all([
-        searchWeb(tavilyKey, `${itemA} population cost of living GDP crime rate ${year}`),
-        searchWeb(tavilyKey, `${itemB} population cost of living GDP crime rate ${year}`),
+        searchWeb(tavilyKey, `${itemA} population cost of living index crime rate ${year}`),
+        searchWeb(tavilyKey, `${itemB} population cost of living index crime rate ${year}`),
       ]);
 
-      searchContext = `
-=== RECENT WEB DATA (${year}) ===
-Use any relevant figures from below to update your knowledge.
-IMPORTANT: If a specific figure is NOT in the search results below, 
-use your own training knowledge instead — never write "not specified" 
-for something that is commonly known. Only write "not specified" if 
-the data is genuinely obscure or unknown.
+      // Only add search context if we actually got useful results
+      if (dataA !== 'No results found.' || dataB !== 'No results found.') {
+        searchContext = `
+SUPPLEMENTARY WEB DATA (${year}):
+Use the figures below to update any metrics where you have recent data.
+Your own training knowledge is the PRIMARY source — use it for everything.
+Only replace a figure with one from below if it is clearly more recent.
+Do NOT say "not specified" for any metric you can answer from your training.
 
---- Recent data: ${itemA} ---
+--- Recent data for ${itemA} ---
 ${dataA}
 
---- Recent data: ${itemB} ---
+--- Recent data for ${itemB} ---
 ${dataB}
-=== END WEB DATA ===
 `;
+      }
     }
 
     // ── Step 2: Build final system prompt ─────────────────────────────────
@@ -112,7 +112,7 @@ async function searchWeb(apiKey, query) {
         api_key: apiKey,
         query,
         search_depth: 'basic',
-        max_results: 4,
+        max_results: 3,
         include_answer: true,
         include_raw_content: false
       })
@@ -123,18 +123,16 @@ async function searchWeb(apiKey, query) {
 
     const answer = data.answer ? `Summary: ${data.answer}\n` : '';
 
-    // Filter out results that don't seem relevant (e.g. conference listings)
+    // Filter out irrelevant results (events, conferences, etc.)
     const filtered = data.results.filter(r =>
-      !r.title.toLowerCase().includes('conference') &&
-      !r.title.toLowerCase().includes('meeting') &&
-      !r.title.toLowerCase().includes('event')
+      !/(conference|meeting|event|summit|workshop|seminar)/i.test(r.title)
     );
 
     const results = (filtered.length ? filtered : data.results)
-      .map(r => `• ${r.title}: ${r.content.slice(0, 400)}`)
+      .map(r => `• ${r.title}: ${r.content.slice(0, 350)}`)
       .join('\n');
 
-    return (answer + results).slice(0, 2000);
+    return (answer + results).slice(0, 1800);
   } catch {
     return 'Search unavailable.';
   }
