@@ -819,7 +819,7 @@ CRITICAL RULES:
 2. NEVER write "not specified" for any metric you reasonably know. Use your training knowledge as the primary source. Only write "not specified" if a metric is genuinely unknowable (e.g. a secret figure).
 3. Always give specific numbers, not vague phrases like "higher" or "strong".
 4. If web search data is provided below, use it to UPDATE your knowledge for recent figures — but fill every gap with your own knowledge.
-5. Include 15-22 rows across 4-6 sections.
+5. Include 12-16 rows across 4-5 sections. Keep all values concise — under 10 words each.
 
 JSON schema:
 {
@@ -885,18 +885,34 @@ winner field: pick the objectively better value, or "tie" if equal. For cities, 
   const apiData = await response.json();
   const text = apiData.content?.map(c => c.text || '').join('') || '';
 
-  // Robustly extract the JSON object from anywhere in the response
+  // Robustly extract and repair JSON from anywhere in the response
   let parsed;
   try {
-    // First try: strip markdown fences and parse directly
-    const clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
-    try {
-      parsed = JSON.parse(clean);
-    } catch {
-      // Second try: find the outermost { } block in the response
-      const jsonMatch = text.match(/\{[\s\S]*\}/);
-      if (!jsonMatch) throw new Error('No JSON found in response');
-      parsed = JSON.parse(jsonMatch[0]);
+    // Strip markdown fences
+    let clean = text.replace(/^```json\s*/i, '').replace(/^```\s*/i, '').replace(/\s*```$/i, '').trim();
+
+    // First try: parse directly
+    try { parsed = JSON.parse(clean); }
+    catch {
+      // Second try: extract the outermost { … } block
+      const jsonMatch = clean.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try { parsed = JSON.parse(jsonMatch[0]); }
+        catch {
+          // Third try: the JSON was cut off — patch it by closing open brackets
+          let fragment = jsonMatch[0];
+          // Count unmatched open braces/brackets and close them
+          let opens = (fragment.match(/\{/g) || []).length - (fragment.match(/\}/g) || []).length;
+          let openArr = (fragment.match(/\[/g) || []).length - (fragment.match(/\]/g) || []).length;
+          // Remove trailing comma/incomplete key before patching
+          fragment = fragment.replace(/,\s*$/, '').replace(/,\s*"[^"]*"\s*:\s*$/, '').replace(/,\s*"[^"]*"\s*$/, '');
+          while (openArr-- > 0) fragment += ']';
+          while (opens-- > 0) fragment += '}';
+          parsed = JSON.parse(fragment);
+        }
+      } else {
+        throw new Error('No JSON found');
+      }
     }
   } catch {
     throw new Error('Could not parse comparison data. Please try again — this sometimes happens on complex comparisons.');
