@@ -119,7 +119,7 @@ function detectCategory(itemA, itemB) {
   if (/university|college|institute of technology|school of|harvard|stanford|mit|oxford|cambridge|yale|princeton|caltech/.test(text))
     return 'university';
 
-  if (/toyota|honda|ford|chevrolet|bmw|mercedes|audi|tesla|hyundai|kia|nissan|volkswagen|porsche|ferrari|mazda|subaru|volvo|jeep|ram truck|mustang|camry|civic|corolla|model [s3xy]/.test(text))
+  if (/toyota|honda|ford|chevrolet|bmw|mercedes|audi|tesla|hyundai|kia|nissan|volkswagen|porsche|ferrari|mclaren|lamborghini|bugatti|aston martin|bentley|rolls royce|mazda|subaru|volvo|jeep|ram truck|dodge|chrysler|cadillac|genesis|rivian|lucid|polestar|koenigsegg|pagani|rimac|alfa romeo|jaguar|lotus|maserati|byd|mercedes.?benz|mini cooper|cooper|citroen|citroën|mustang|camry|civic|corolla|model [s3xy]|911|750s|urus|huracan|aventador|supra|nsx|gt-r|viper|agera|jesko|zonda|huayra|stelvio|giulia|ghibli|gran turismo|f-type|evora|emira|dynasty|atto/.test(text))
     return 'car';
 
   if (/ipad|galaxy tab|surface pro|tab s\d|kindle|e-reader/.test(text))
