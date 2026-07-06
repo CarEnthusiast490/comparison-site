@@ -119,7 +119,7 @@ function detectCategory(itemA, itemB) {
   if (/university|college|institute of technology|school of|harvard|stanford|mit|oxford|cambridge|yale|princeton|caltech/.test(text))
     return 'university';
 
-  if (/toyota|honda|ford|chevrolet|bmw|mercedes|audi|tesla|hyundai|kia|nissan|volkswagen|porsche|ferrari|mclaren|lamborghini|bugatti|aston martin|bentley|rolls royce|mazda|subaru|volvo|jeep|ram truck|dodge|chrysler|cadillac|genesis|rivian|lucid|polestar|koenigsegg|pagani|rimac|alfa romeo|jaguar|lotus|maserati|byd|mercedes.?benz|mini cooper|cooper|citroen|citroën|mustang|camry|civic|corolla|model [s3xy]|911|750s|urus|huracan|aventador|supra|nsx|gt-r|viper|agera|jesko|zonda|huayra|stelvio|giulia|ghibli|gran turismo|f-type|evora|emira|dynasty|atto/.test(text))
+  if (/toyota|honda|ford|chevrolet|bmw|mercedes|audi|tesla|hyundai|kia|nissan|volkswagen|porsche|ferrari|mclaren|lamborghini|bugatti|aston martin|bentley|rolls royce|mazda|subaru|volvo|jeep|ram truck|dodge|chrysler|cadillac|genesis|rivian|lucid|polestar|koenigsegg|pagani|rimac|alfa romeo|jaguar|lotus|maserati|byd|mercedes.?benz|mini cooper|cooper|citroen|citroën|mustang|camry|civic|corolla|model [s3xy]|911|750s|720s|765lt|senna|artura|urus|huracan|aventador|revuelto|temerario|sf90|f8|296|812|roma|purosangue|supra|nsx|gt-r|viper|agera|jesko|regera|zonda|huayra|utopia|nevera|c_two|stelvio|giulia|ghibli|gran turismo|quattroporte|levante|f-type|evora|emira|eletre|dynasty|atto|seal|han/.test(text))
     return 'car';
 
   if (/ipad|galaxy tab|surface pro|tab s\d|kindle|e-reader/.test(text))
@@ -179,12 +179,12 @@ function getSearchQueries(category, a, b, year) {
 
     case 'car':
       return [
-        { label: `${a} — Base price (${year})`,           query: `${a} base MSRP starting price USD ${year}` },
-        { label: `${b} — Base price (${year})`,           query: `${b} base MSRP starting price USD ${year}` },
-        { label: `${a} — Horsepower & 0-60`,              query: `${a} horsepower 0 to 60 mph specifications` },
-        { label: `${b} — Horsepower & 0-60`,              query: `${b} horsepower 0 to 60 mph specifications` },
-        { label: `${a} — Fuel economy or range`,          query: `${a} fuel economy MPG or EV range miles` },
-        { label: `${b} — Fuel economy or range`,          query: `${b} fuel economy MPG or EV range miles` },
+        { label: `${a} — Base price (${year})`,                    query: `${a} base price MSRP USD ${year}` },
+        { label: `${b} — Base price (${year})`,                    query: `${b} base price MSRP USD ${year}` },
+        { label: `${a} — Engine, horsepower, torque & 0-60`,       query: `${a} engine horsepower torque 0-60 mph top speed specs` },
+        { label: `${b} — Engine, horsepower, torque & 0-60`,       query: `${b} engine horsepower torque 0-60 mph top speed specs` },
+        { label: `${a} — Weight, transmission & drivetrain`,       query: `${a} kerb weight transmission drivetrain specifications` },
+        { label: `${b} — Weight, transmission & drivetrain`,       query: `${b} kerb weight transmission drivetrain specifications` },
       ];
 
     case 'tablet':
