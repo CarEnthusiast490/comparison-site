@@ -816,7 +816,7 @@ async function fetchComparison(a, b) {
 
 CRITICAL RULES:
 1. Respond with ONLY a valid JSON object — no preamble, no markdown fences, no extra text.
-2. NEVER write "not specified" for any metric you reasonably know. Use your training knowledge as the primary source. Only write "not specified" if a metric is genuinely unknowable (e.g. a secret figure).
+2. NEVER write "not specified", "not provided", "unknown", "N/A", or "n/a" for any metric you reasonably know. Use your training knowledge as the primary source. Only leave a field blank if the data is genuinely secret or unannounced.
 3. Always give specific numbers, not vague phrases like "higher" or "strong".
 4. If web search data is provided below, use it to UPDATE your knowledge for recent figures — but fill every gap with your own knowledge.
 5. Include 12-16 rows across 4-5 sections. Keep all values concise — under 10 words each.
@@ -853,7 +853,7 @@ SMARTPHONES: Release year, Starting price, Chipset/processor, CPU benchmark (AnT
 
 LAPTOPS: Release year, Starting price, Processor, RAM, Storage, Display size, Display resolution, Refresh rate, GPU, Battery life (hours), Weight, Thickness, Ports, OS, Fingerprint/Face ID, Price-to-performance.
 
-CARS: Starting price, Engine type, Horsepower, Torque, 0-60 mph, Top speed, Fuel economy (MPG or range if EV), Cargo space, Seating capacity, Safety rating (NHTSA/NCAP), Infotainment screen size, Warranty, Country of manufacture.
+CARS: Starting price (USD), Engine (displacement + cylinders e.g. "6.5L V12"), Power output (hp), Torque (lb-ft or Nm), 0-60 mph time, Top speed (mph), Transmission, Drivetrain (RWD/AWD etc.), Kerb weight (kg or lb), Body material (e.g. carbon fibre, aluminium), Seating capacity, Fuel economy or EV range, Safety rating, Warranty, Country of manufacture, Production type (mass/limited). For exotic and sports cars: always include specific engine, power, 0-60, and top speed — you know these figures for Ferrari, Lamborghini, McLaren, Porsche and similar brands.
 
 UNIVERSITIES: QS World Ranking, Acceptance rate, Undergraduate tuition (international), Undergraduate tuition (domestic), Total enrolment, Student-to-faculty ratio, Campus size, Location, Founded year, Endowment, Notable alumni, Research output.
 
